@@ -19,9 +19,12 @@ int motorValues[2] = {1, 1};
 #define Motor2Dir0 6
 #define Motor2Dir1 5
 
+#define Motor1Enable 12
+#define Motor2Enable 8
+
 #define ReceiverPin 3
 
-#define motorDeadband 0.15 //percent error between commanded and set motor pwm value
+#define motorDeadband 0.03 //percent error between commanded and set motor pwm value
 #define Motor1Multiplier 1  //change to -1 to reverse direction
 #define Motor2Multiplier 1
 
@@ -41,8 +44,8 @@ void setup() {
   pinMode(ReceiverPin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(ReceiverPin), read_me, FALLING);
 
-  pinMode(12, OUTPUT);
-  pinMode(8, OUTPUT);
+  pinMode(Motor1Enable, OUTPUT);
+  pinMode(Motor2Enable, OUTPUT);
 
   pinMode(A0, OUTPUT);
   pinMode(A5, OUTPUT);
@@ -55,9 +58,16 @@ void loop() {
   if (ch[iterations-1][3] > 700) {
     digitalWrite(blueLED, HIGH);
     digitalWrite(redLED, LOW);
+    enableDrive();
     ServoWeaponESC.write(map(ch[iterations][1], 0, 1000, 0, 180));
-
-    //ARMED
+    
+    if ( 
+      (abs( ((motorValues[0] - avg[2]) / float(motorValues[0]))) > motorDeadband) ||
+      (abs( ((motorValues[1] - avg[0]) / float(motorValues[1]))) > motorDeadband) 
+      ) {
+        updateMotors(avg[2], avg[0]);
+      }
+      delay(25);
   } else {
     //NO RADIO CONNECTED
     digitalWrite(blueLED, LOW);
@@ -65,60 +75,69 @@ void loop() {
   }
 }
 
-void updateMotors(int M1, int M2) {
-  motorValues[0] = M1;
-  motorValues[1] = M2;
-  int linearValue = map(M1, 0, 1000, -255, 255);
-  int rotationalValue = map(M2, 0, 1000, -255, 255);
+void enableDrive() {
+  digitalWrite(Motor1Enable, HIGH);
+  digitalWrite(Motor2Enable, HIGH);
+}
+
+void updateMotors(int Ch1, int Ch2) {
+  motorValues[0] = Ch1;
+  motorValues[1] = Ch2;
+  int linearValue = map(Ch1, 0, 1000, -255, 255);
+  int rotationalValue = map(Ch2, 0, 1000, -255, 255);
 
   motorMixer(linearValue, rotationalValue);
-
+  Serial.println("M0: " + String(MixedSpeeds[0]) + ";\tM1: " + String(MixedSpeeds[1]));
   if (MixedSpeeds[0] > 0) {
     digitalWrite(Motor1Dir1, LOW);
     delay(1);
-    analogWrite(Motor1Dir0, MixedSpeeds[0]);
+    analogWrite(Motor1Dir0, abs(MixedSpeeds[0]));
   } else {
     digitalWrite(Motor1Dir0, LOW);
     delay(1);
-    analogWrite(Motor1Dir1, MixedSpeeds[0]);
+    analogWrite(Motor1Dir1, abs(MixedSpeeds[0]));
   }
   if (MixedSpeeds[1] > 0) {
     digitalWrite(Motor2Dir1, LOW);
     delay(1);
-    analogWrite(Motor2Dir0, MixedSpeeds[0]);
+    analogWrite(Motor2Dir0, abs(MixedSpeeds[1]));
   } else {
     digitalWrite(Motor2Dir0, LOW);
     delay(1);
-    analogWrite(Motor2Dir1, MixedSpeeds[0]);
+    analogWrite(Motor2Dir1, abs(MixedSpeeds[1]));
   }
 }
 
 void motorMixer(int fwd, int trn) {
   int speeds[2];
+  if ( ( (fwd  < (255 * motorDeadband)) && (fwd > (-255 * motorDeadband))) || ((trn  < (255 * motorDeadband)) && (trn > (-255 * motorDeadband)))) {  //if axis is zero
 
-  if ((fwd == 0) || (trn == 0)) {
     speeds[0] = constrain((fwd + trn), -255, 255);
     speeds[1] = constrain((fwd - trn), -255, 255);
   } else if (trn > 0) {
     if (fwd > 0) {
+
       speeds[0] = max(abs(fwd), abs(trn));
       speeds[1] = 255 - (trn / 2) - ((255 - fwd) / 2);
     } else {
+
       speeds[0] = -1 * max(abs(fwd), abs(trn));
       speeds[1] = -255 + (trn / 2) + ((255 + fwd) / 2);
     }
   } else {
     if (fwd > 0) {
-      speeds[0] = 255 - (trn / 2) - ((255 - fwd) / 2);
+
+      speeds[0] = 255 - (-trn / 2) - ((255 - fwd) / 2);
       speeds[1] = max(abs(fwd), abs(trn));
     } else {
-      speeds[0] = -255 + (trn / 2) + ((255 + fwd) / 2);
+
+      speeds[0] = -255 + (-trn / 2) + ((255 + fwd) / 2);
       speeds[1] = -1 * max(abs(fwd), abs(trn));
     }
   }
 
-  MixedSpeeds[0] = speeds[0];
-  MixedSpeeds[1] = speeds[1];
+  MixedSpeeds[0] = constrain(speeds[0],-255,255);
+  MixedSpeeds[1] = constrain(speeds[1],-255,255);
 }
 
 
