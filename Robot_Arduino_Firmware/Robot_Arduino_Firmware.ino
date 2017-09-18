@@ -31,9 +31,9 @@ int motorValues[2] = {1, 1};
 bool alreadyRunning = false;
 unsigned long lastTime = 0;
 
-unsigned long escFrameStart = millis();
-unsigned long escPulseStop = millis();
-float escPulseWidth;
+unsigned long escFrameStart = micros();
+unsigned long escPulseStop = micros();
+int escPulseWidth;
 
 void setup() {
   Serial.begin(115200);
@@ -58,7 +58,6 @@ void setup() {
 void loop() {
   read_rc();
 
-  updateWeaponESC();
 
   if (ch[iterations-1][3] > 700) {
     if (!alreadyRunning) {
@@ -69,7 +68,7 @@ void loop() {
     }
     
     updateWeaponESC();
-    Serial.println("FWD: " + String(avg[2]) + ";\tTRN: " + String(avg[0]));
+    //Serial.println("FWD: " + String(avg[2]) + ";\tTRN: " + String(avg[0]));
 
     if (motorUpdateTime < millis() - lastTime) {
       if ( (abs( ((motorValues[0] - avg[2]) / float(motorValues[0]))) > motorDeadband) || (abs(((motorValues[1] - avg[0]) / float(motorValues[1]))) > motorDeadband) ) {
@@ -88,11 +87,12 @@ void loop() {
 }
 
 void updateWeaponESC() {
-  if (millis() >= escFrameStart + 20) {
-    escPulseWidth = (float(map(ch[iterations-1][1], 0,1000, 1005, 1995))/1000.0);
+  if (micros() >= escFrameStart + 20000) {
+    escPulseWidth = constrain(map(ch[iterations-1][1], 0, 1000, 1000, 2000), 1005, 1995);
     digitalWrite(weaponESC, HIGH);
-    escPulseStop = millis() + escPulseWidth;
-  } else  if (millis() >= escPulseStop) {
+    escFrameStart = micros();
+    escPulseStop = escFrameStart + escPulseWidth;
+  } else if (micros() >= escPulseStop) {
     digitalWrite(weaponESC, LOW);
   }
 }
