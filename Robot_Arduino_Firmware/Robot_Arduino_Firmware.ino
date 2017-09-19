@@ -1,9 +1,10 @@
+bool notWaiting = true;
+
 //original ppm code by abhilash_patel
 
 #define ChannelsUsed 4
-//#define iterations 1
 unsigned long int a, b, c;
-int x[10], ch1[10], i; //ch[iterations][ChannelsUsed], i;
+int x[15], ch1[15], i; //ch[iterations][ChannelsUsed], i;
 
 int avg[ChannelsUsed];
 
@@ -58,8 +59,8 @@ void setup() {
 
 void loop() {
   read_rc();
-
-  if (avg[3] > 700) {
+  
+  if (avg[3] > 850) {
     if (!alreadyRunning) {
       digitalWrite(blueLED, HIGH);
       digitalWrite(redLED, LOW);
@@ -91,8 +92,10 @@ void updateWeaponESC() {
     digitalWrite(weaponESC, HIGH);
     escFrameStart = micros();
     escPulseStop = escFrameStart + escPulseWidth;
-  } else if (micros() >= escPulseStop) {
+    notWaiting = true;
+  } else if ((micros() >= escPulseStop) && notWaiting) {
     digitalWrite(weaponESC, LOW);
+    notWaiting = false;
   }
 }
 
@@ -187,55 +190,31 @@ void motorMixer(int fwd, int trn) {
 }
 
 
-/*void computeAVG() {
-  /*for (int i = 0; i < ChannelsUsed; i++) {
-    int sum = 0;
-    for (int index = 0; index < iterations; index++) {
-      sum += ch[index][i];
-    }
-    avg[i] = (sum / iterations);
-  }
-  avg[0] = ch[iterations-1][0];
-  avg[1] = ch[iterations-1][1];
-  avg[2] = ch[iterations-1][2];
-  avg[3] = ch[iterations-1][3];
-}*/
-
-
 //BEGIN MODIFIED PPM CODE BY abhilash_patel
 
 void read_me()  {
- //this code reads value from RC reciever from PPM pin (Pin 2 or 3)
- //this code gives channel values from 0-1000 values 
- //    -: ABHILASH :-    //
-  a=micros(); //store time value a when pin value falling
-  c=a-b;      //calculating time inbetween two peaks
-  b=a;        // 
-  x[i]=c;     //storing 15 value in array
-  i=i+1;      
-  if(i==10){
-    for(int j=0;j<10;j++) {
-      ch1[j]=x[j];
+  a = micros();
+  c = a - b;
+  b = a; 
+  x[i] = c;
+  i = i + 1;
+  if (i == 15) {
+    for (int j = 0; j < 15; j++) {
+      ch1[j] = x[j];
     }
-    i=0;
+    i = 0;
   }
-}//copy store all values from temporary array another array after 15 reading 
+}
 
 
 void read_rc() {
-  int i,j,k=0;
-  for(k=9;k>-1;k--){
-    if(ch1[k]>10000){
-      j=k;
+  int i, j, k = 0;
+  for (k = 14; k > -1; k--) {
+    if (ch1[k] > 10000) {
+      j = k;
     }
-  }  //detecting separation space 10000us in that another array  
-  /*for (int x = 1; x < iterations; x++) {
-    for (int channel = 0; channel < ChannelsUsed; channel++) {
-      ch[x-1][channel] = ch[x][channel];                   
-    }
-  }*/
-  for(i=0;i < ChannelsUsed;i++){
-    avg[i]=(ch1[i+j+1]-1000);   //ch[iterations-1][i]=(ch1[i+j+1]-1000);
   }
-  //computeAVG();
-}     //assign ChannelsUsed channel values after separation space
+  for (i = 0; i < ChannelsUsed; i++) {
+    avg[i] = (ch1[i + j+1] - 1000);
+  }
+}
