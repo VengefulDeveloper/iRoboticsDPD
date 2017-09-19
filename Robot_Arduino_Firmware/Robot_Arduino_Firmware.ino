@@ -1,9 +1,9 @@
 //original ppm code by abhilash_patel
 
 #define ChannelsUsed 4
-#define iterations 3
+//#define iterations 1
 unsigned long int a, b, c;
-int x[15], ch1[15], ch[iterations][ChannelsUsed], i;
+int x[10], ch1[10], i; //ch[iterations][ChannelsUsed], i;
 
 int avg[ChannelsUsed];
 
@@ -24,6 +24,7 @@ int motorValues[2] = {1, 1};
 #define ReceiverPin 3
 
 #define motorDeadband 0.1 //percent error between commanded and set motor pwm value
+const int range255Deadband = motorDeadband * 255;
 
 #define redLED A0
 #define blueLED A5
@@ -58,8 +59,7 @@ void setup() {
 void loop() {
   read_rc();
 
-
-  if (ch[iterations-1][3] > 700) {
+  if (avg[3] > 700) {
     if (!alreadyRunning) {
       digitalWrite(blueLED, HIGH);
       digitalWrite(redLED, LOW);
@@ -68,7 +68,6 @@ void loop() {
     }
     
     updateWeaponESC();
-    //Serial.println("FWD: " + String(avg[2]) + ";\tTRN: " + String(avg[0]));
 
     if (motorUpdateTime < millis() - lastTime) {
       if ( (abs( ((motorValues[0] - avg[2]) / float(motorValues[0]))) > motorDeadband) || (abs(((motorValues[1] - avg[0]) / float(motorValues[1]))) > motorDeadband) ) {
@@ -88,7 +87,7 @@ void loop() {
 
 void updateWeaponESC() {
   if (micros() >= escFrameStart + 20000) {
-    escPulseWidth = constrain(map(ch[iterations-1][1], 0, 1000, 1000, 2000), 1005, 1995);
+    escPulseWidth = constrain(map(avg[1], 0, 1000, 1000, 2000), 1000, 2000);
     digitalWrite(weaponESC, HIGH);
     escFrameStart = micros();
     escPulseStop = escFrameStart + escPulseWidth;
@@ -113,34 +112,37 @@ void updateMotors(int Ch1, int Ch2) {
   int linearValue = map(Ch1, 0, 1000, -255, 255);
   int rotationalValue = map(Ch2, 0, 1000, -255, 255);
 
-  if (abs(linearValue) < motorDeadband*255) {
-    linearValue = 0;
-  }
-  if (abs(rotationalValue) < motorDeadband*255) {
-    rotationalValue = 0;
-  }
+  linearValue = (abs(linearValue) < range255Deadband) ? (0) : (linearValue);
+  rotationalValue = (abs(rotationalValue) < range255Deadband) ? (0) : (rotationalValue);
 
-  motorMixer(linearValue, rotationalValue);
   
-  if (MixedSpeeds[0] > 0) {
-    digitalWrite(Motor1Dir1, LOW);
-    analogWrite(Motor1Dir0, abs(MixedSpeeds[0]));
+  motorMixer(linearValue, rotationalValue);
 
+  if (abs(MixedSpeeds[0]) < range255Deadband) {
+    digitalWrite(Motor1Enable, LOW);
   } else {
-    digitalWrite(Motor1Dir0, LOW);
-    analogWrite(Motor1Dir1, abs(MixedSpeeds[0]));
-
-  }
-  if (MixedSpeeds[1] > 0) {
-    digitalWrite(Motor2Dir1, LOW);
-    analogWrite(Motor2Dir0, abs(MixedSpeeds[1]));
-
-  } else {
-    digitalWrite(Motor2Dir0, LOW);
-    analogWrite(Motor2Dir1, abs(MixedSpeeds[1]));
-
+    digitalWrite(Motor1Enable, HIGH);
+    if (MixedSpeeds[0] > 0) {
+      digitalWrite(Motor1Dir1, LOW);
+      analogWrite(Motor1Dir0, abs(MixedSpeeds[0]));
+    } else {
+      digitalWrite(Motor1Dir0, LOW);
+      analogWrite(Motor1Dir1, abs(MixedSpeeds[0]));
+    }
   }
 
+  if (abs(MixedSpeeds[1]) < range255Deadband) {
+    digitalWrite(Motor2Enable, LOW);
+  } else {
+    digitalWrite(Motor2Enable, HIGH);
+    if (MixedSpeeds[1] > 0) {
+      digitalWrite(Motor2Dir1, LOW);
+      analogWrite(Motor2Dir0, abs(MixedSpeeds[1]));
+    } else {
+      digitalWrite(Motor2Dir0, LOW);
+      analogWrite(Motor2Dir1, abs(MixedSpeeds[1]));
+    }
+  }
 }
 
 void motorMixer(int fwd, int trn) {
@@ -150,40 +152,54 @@ void motorMixer(int fwd, int trn) {
     speeds[1] = constrain((fwd - trn), -255, 255);
   } else if (trn > 0) {
     if (fwd > 0) {
-
-      speeds[0] = max(abs(fwd), abs(trn));
+      speeds[0] = ((fwd > trn) ? (fwd) : (trn)); //max(abs(fwd), abs(trn));
       speeds[1] = 255 - (trn / 2) - ((255 - fwd) / 2);
     } else {
 
-      speeds[0] = -1 * max(abs(fwd), abs(trn));
+      speeds[0] = -1 * ((-fwd > trn) ? (-fwd) : (trn));
       speeds[1] = -255 + (trn / 2) + ((255 + fwd) / 2);
     }
   } else {
     if (fwd > 0) {
 
       speeds[0] = 255 - (-trn / 2) - ((255 - fwd) / 2);
-      speeds[1] = max(abs(fwd), abs(trn));
+      speeds[1] = ((fwd > -trn) ? (fwd) : (-trn));
     } else {
 
       speeds[0] = -255 + (-trn / 2) + ((255 + fwd) / 2);
-      speeds[1] = -1 * max(abs(fwd), abs(trn));
+      speeds[1] = -1 * ((-fwd > -trn) ? (-fwd) : (-trn));
     }
   }
-  if (speeds[0] == 0) {
+  if (abs(speeds[0]) < range255Deadband) {
     digitalWrite(Motor1Enable, LOW);
   } else {
     digitalWrite(Motor1Enable, HIGH);
   }
 
-  if (speeds[1] == 0) {
+  if (abs(speeds[1]) < range255Deadband) {
     digitalWrite(Motor2Enable, LOW);
   } else {
     digitalWrite(Motor2Enable, HIGH);
   }
+  
   MixedSpeeds[0] = constrain(speeds[0],-255,255);
   MixedSpeeds[1] = constrain(speeds[1],-255,255);
 }
 
+
+/*void computeAVG() {
+  /*for (int i = 0; i < ChannelsUsed; i++) {
+    int sum = 0;
+    for (int index = 0; index < iterations; index++) {
+      sum += ch[index][i];
+    }
+    avg[i] = (sum / iterations);
+  }
+  avg[0] = ch[iterations-1][0];
+  avg[1] = ch[iterations-1][1];
+  avg[2] = ch[iterations-1][2];
+  avg[3] = ch[iterations-1][3];
+}*/
 
 
 //BEGIN MODIFIED PPM CODE BY abhilash_patel
@@ -197,38 +213,29 @@ void read_me()  {
   b=a;        // 
   x[i]=c;     //storing 15 value in array
   i=i+1;      
-  if(i==15){
-    for(int j=0;j<15;j++) {
+  if(i==10){
+    for(int j=0;j<10;j++) {
       ch1[j]=x[j];
     }
     i=0;
   }
 }//copy store all values from temporary array another array after 15 reading 
 
-void computeAVG() {
-  for (int i = 0; i < ChannelsUsed; i++) {
-    int sum = 0;
-    for (int index = 0; index < iterations; index++) {
-      sum += ch[index][i];
-    }
-    avg[i] = (sum / iterations);
-  }
-}
 
 void read_rc() {
   int i,j,k=0;
-  for(k=14;k>-1;k--){
+  for(k=9;k>-1;k--){
     if(ch1[k]>10000){
       j=k;
     }
   }  //detecting separation space 10000us in that another array  
-  for (int x = 1; x < iterations; x++) {
+  /*for (int x = 1; x < iterations; x++) {
     for (int channel = 0; channel < ChannelsUsed; channel++) {
       ch[x-1][channel] = ch[x][channel];                   
     }
-  }
+  }*/
   for(i=0;i < ChannelsUsed;i++){
-    ch[iterations-1][i]=(ch1[i+j+1]-1000);
+    avg[i]=(ch1[i+j+1]-1000);   //ch[iterations-1][i]=(ch1[i+j+1]-1000);
   }
-  computeAVG();
+  //computeAVG();
 }     //assign ChannelsUsed channel values after separation space
