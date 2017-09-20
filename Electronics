@@ -1,5 +1,11 @@
-https://hobbyking.com/en_us/multistar-32bit-30a-0-lite.html - Motor ESC
-https://hobbyking.com/en_us/orangerx-r615x-dsm2-dsmx-compatible-6ch-2-4ghz-receiver-w-cppm.html - Receiver
-https://hobbyking.com/en_us/turnigy-nano-tech-850mah-3s-25-40c-lipo-pack.html - Battery
+Motor ESC : https://hobbyking.com/en_us/multistar-32bit-30a-0-lite.html
+Receiver : https://hobbyking.com/en_us/orangerx-r615x-dsm2-dsmx-compatible-6ch-2-4ghz-receiver-w-cppm.html
+(?)Battery : https://hobbyking.com/en_us/turnigy-nano-tech-850mah-3s-25-40c-lipo-pack.html
+Weapon Motor : https://hobbyking.com/en_us/ntm-prop-drive-series-28-30s-900kv-270w-short-shaft-version.html
 
-possible drive motors : https://www.pololu.com/category/60/micro-metal-gearmotors
+Possible Wheels : https://www.pololu.com/category/89/pololu-wheels-and-tracks
+Possible Drive Motors : https://www.pololu.com/category/60/micro-metal-gearmotors
+
+Recently found tiny brushed ESCs; 2 of which could power the drive, and would remove the need for the arduino circuit.
+  The transmitter would need to be set up to mix the outputs; 
+  which I am not sure how exactly it would need to be set up, but it could work and save ~20 grams
