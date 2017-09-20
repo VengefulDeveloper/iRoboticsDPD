@@ -6,7 +6,7 @@ Weapon Motor : https://hobbyking.com/en_us/ntm-prop-drive-series-28-30s-900kv-27
 ***Possible Wheels : https://www.pololu.com/category/89/pololu-wheels-and-tracks
 ***Possible Drive Motors : 
   https://www.pololu.com/category/60/micro-metal-gearmotors
-  https://www.sparkfun.com/products/12316
+  https://www.sparkfun.com/products/12316   Recommended to use 2 of these for the drive system
   https://www.sparkfun.com/categories/247
 
 Recently found tiny brushed ESCs; 2 of which could power the drive, and would remove the need for the arduino circuit.
