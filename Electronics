@@ -7,6 +7,7 @@ Possible Wheels : https://www.pololu.com/category/89/pololu-wheels-and-tracks
 Possible Drive Motors : 
   https://www.pololu.com/category/60/micro-metal-gearmotors
   https://www.sparkfun.com/products/12316
+  https://www.sparkfun.com/categories/247
 
 Recently found tiny brushed ESCs; 2 of which could power the drive, and would remove the need for the arduino circuit.
   The transmitter would need to be set up to mix the outputs; 
