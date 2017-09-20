@@ -4,7 +4,9 @@ Receiver : https://hobbyking.com/en_us/orangerx-r615x-dsm2-dsmx-compatible-6ch-2
 Weapon Motor : https://hobbyking.com/en_us/ntm-prop-drive-series-28-30s-900kv-270w-short-shaft-version.html
 
 Possible Wheels : https://www.pololu.com/category/89/pololu-wheels-and-tracks
-Possible Drive Motors : https://www.pololu.com/category/60/micro-metal-gearmotors
+Possible Drive Motors : 
+  https://www.pololu.com/category/60/micro-metal-gearmotors
+  https://www.sparkfun.com/products/12316
 
 Recently found tiny brushed ESCs; 2 of which could power the drive, and would remove the need for the arduino circuit.
   The transmitter would need to be set up to mix the outputs; 
