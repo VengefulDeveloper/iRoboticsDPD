@@ -1,0 +1,25 @@
+*** Need to buy
+
+Approximate Total Cost: $87-89 + Shipping
+
+(1) ***Weapon Motor ESC : https://hobbyking.com/en_us/multistar-32bit-30a-0-lite.html
+(1) Receiver : https://hobbyking.com/en_us/orangerx-r615x-dsm2-dsmx-compatible-6ch-2-4ghz-receiver-w-cppm.html
+(1) ***(?)Battery : https://hobbyking.com/en_us/turnigy-nano-tech-850mah-3s-25-40c-lipo-pack.html
+(1) Weapon Motor : https://hobbyking.com/en_us/ntm-prop-drive-series-28-30s-900kv-270w-short-shaft-version.html
+(2) ***Drive Motor : https://www.sparkfun.com/products/12316
+(2) ***Small Brushed ESC : https://wheelspinmodels.co.uk/i/88540/
+(2) *** Wheels (Size depends on CAD design): https://www.pololu.com/category/89/pololu-wheels-and-tracks
+
+
+***Possible Drive Motors : 
+  https://www.pololu.com/category/60/micro-metal-gearmotors
+  https://www.sparkfun.com/products/12316   Recommended to use 2 of these for the drive system
+  https://www.sparkfun.com/categories/247
+
+Recently found tiny brushed ESCs; 2 of which could power the drive, and would remove the need for the arduino circuit.
+  The transmitter would need to be set up to mix the outputs; 
+  which I am not sure how exactly it would need to be set up, but it could work and save ~20 grams
+***https://www.fingertechrobotics.com/proddetail.php?prod=ft-tinyESCv2
+***https://www.sussex-model-centre.co.uk/ics-50li-micro-lipo-2a-speed-controller    a similar thing but not over $30 a piece like the other one
+***https://wheelspinmodels.co.uk/i/88540/  another option
+
